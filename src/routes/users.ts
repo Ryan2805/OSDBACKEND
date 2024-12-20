@@ -1,4 +1,5 @@
 import express, {Router} from 'express';
+import { validJWTProvided } from '../middleware/auth.middleware';
 import {
   getUsers,
   getUserById,
@@ -13,7 +14,7 @@ router.get('/', getUsers);
 router.get('/:id', getUserById);
 router.post('/', createUser);
 router.put('/:id', updateUser);
-router.delete('/:id', deleteUser);
+router.delete('/:id',validJWTProvided, deleteUser);
 
 export default router;
 

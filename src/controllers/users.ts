@@ -1,33 +1,78 @@
 import { Request, Response } from 'express';
+import { usersCollection } from '../database';
+import * as argon2 from "argon2"; // For hashing passwords
+import { ValidateUser, User } from "../models/user"; 
 
+// Placeholder for getting all users
 export const getUsers = (req: Request, res: Response) => {
-    //to do: get all users from the database
-  res.json({"message": "getUsers received"})
+  res.json({ message: "getUsers received" });
 };
 
+// user by id
 export const getUserById = (req: Request, res: Response) => {
-  // get a single  user by ID from the database
-  let id:string = req.params.id;
-  res.json({"message": `get a user ${id} received`})
+  const id: string = req.params.id;
+  res.json({ message: `get a user ${id} received` });
 };
 
-export const createUser = (req: Request, res: Response) => {
-  // create a new user in the database
+// creating a new user
+export const createUser = async (req: Request, res: Response) => {
+  try {
+    // Step 1: Validate user input
+    const validationResult = ValidateUser(req.body);
+    if (validationResult.error) {
+      res.status(400).json(validationResult.error);
+      return;
+    }
 
-  console.log(req.body); //for now just log the data
+    
+    const existingUser = await usersCollection.findOne({ email: req.body.email });
+    if (existingUser) {
+      res.status(400).json({ error: "A user with this email already exists." });
+      return;
+    }
 
-  res.json({"message": `create a new user with data from the post message`})
+    
+    const newUser: User = {
+      name: req.body.name,
+      phonenumber: req.body.phonenumber,
+      email: req.body.email.toLowerCase(),
+      dateJoined: new Date(),
+      lastUpdated: new Date(),
+    };
+
+    //  Hash the password
+    newUser.hashedPassword = await argon2.hash(req.body.password);
+
+    //  Save the user to the database
+    const result = await usersCollection.insertOne(newUser);
+    if (result) {
+      res
+        .status(201)
+        .location(`${result.insertedId}`)
+        .json({
+          message: `Created a new user with ID: ${result.insertedId}`,
+        });
+    } else {
+      res.status(500).send("Failed to create a new user.");
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(`Error creating user: ${error.message}`);
+    } else {
+      console.error(`Unknown error: ${error}`);
+    }
+    res.status(500).send("An error occurred while creating the user.");
+  }
 };
 
+// Placeholder for updating a user
 export const updateUser = (req: Request, res: Response) => {
-  
-  console.log(req.body); //for now just log the data
-
-  res.json({"message": `update user ${req.params.id} with data from the post message`})
+  console.log(req.body);
+  res.json({ message: `update user ${req.params.id} with data from the post message` });
 };
 
+// Placeholder for deleting a user
 export const deleteUser = (req: Request, res: Response) => {
-  // logic to delete user by ID from the database
-
-  res.json({"message": `delete user ${req.params.id} from the database`})
+  res.json({ message: `delete user ${req.params.id} from the database` });
 };
+
