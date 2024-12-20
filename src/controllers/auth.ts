@@ -60,7 +60,7 @@ export const handleLogin = async (req: Request, res: Response) => {
 
 const createAccessToken = (user: User): string => {
     const secret = process.env.JWTSECRET || 'not very secret';
-    const expiresInRaw = process.env.JWTEXPIRES || '60'; // Default to 60 seconds
+    const expiresInRaw = process.env.JWTEXPIRES || '1d'; // Default to 60 seconds
 
     // Explicitly convert to a number if it's numeric
     const expiresIn = isNaN(Number(expiresInRaw)) ? expiresInRaw : Number(expiresInRaw);

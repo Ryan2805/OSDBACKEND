@@ -4,7 +4,7 @@ import cors from "cors";
 import authRoutes from './routes/auth';
 import { connectToDatabase } from "./database";
 import userRoutes from './routes/users';
-
+import drinkRoutes from './routes/drinks'; 
 const PORT = process.env.PORT || 3000;
 
 const app: Application = express();
@@ -17,6 +17,7 @@ app.use(express.json());
 // Routes
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/drinks', drinkRoutes); 
 
 app.get("/ping", async (_req: Request, res: Response) => {
   res.send({
