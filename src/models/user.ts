@@ -10,6 +10,7 @@ export interface User {
     lastUpdated?: Date;
     password?: string; // Plain text password
     hashedPassword?: string; // Hashed password
+    role?: 'user' | 'admin'; // Added role field
   }
   export const ValidateUser = (user: User) => {
     const userJoiSchema = Joi.object<User>({

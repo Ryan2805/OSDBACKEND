@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { usersCollection } from "../database";
 import * as argon2 from 'argon2';
-import { sign as jwtSign } from 'jsonwebtoken';
 import { User } from '../models/user';
+import { SignOptions, sign as jwtSign } from 'jsonwebtoken';
+
 
 export const handleLogin = async (req: Request, res: Response) => {
     console.log("Login request received.");
@@ -59,20 +60,26 @@ export const handleLogin = async (req: Request, res: Response) => {
 };
 
 const createAccessToken = (user: User): string => {
-    const secret = process.env.JWTSECRET || 'not very secret';
-    const expiresInRaw = process.env.JWTEXPIRES || '1d'; // Default to 60 seconds
+    const secret: string = process.env.JWTSECRET || 'not very secret';
+    const expiresInRaw: string | undefined = process.env.JWTEXPIRES; 
 
-    // Explicitly convert to a number if it's numeric
-    const expiresIn = isNaN(Number(expiresInRaw)) ? expiresInRaw : Number(expiresInRaw);
+    let expiresIn: SignOptions['expiresIn'] = 86400; // Default (1 day in seconds)
 
-    console.log("JWT Expires In Value:", expiresIn); // Debugging
-    console.log("ExpiresIn Type:", typeof expiresIn); // Check the type
+    if (expiresInRaw) {
+        if (!isNaN(Number(expiresInRaw))) {
+            expiresIn = Number(expiresInRaw); // Convert numeric string to number
+        } else {
+            expiresIn = expiresInRaw as SignOptions['expiresIn']; // Explicit cast
+        }
+    }
 
     const payload = {
         email: user.email,
-        name: user.name
+        name: user.name,
+        role: user.role, // Include role in the token payload
     };
 
-    // Pass the corrected `expiresIn` to jwtSign
-    return jwtSign(payload, secret, { expiresIn });
+    const options: SignOptions = { expiresIn };
+
+    return jwtSign(payload, secret, options);
 };

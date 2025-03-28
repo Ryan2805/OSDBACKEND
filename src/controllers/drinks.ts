@@ -85,3 +85,14 @@ export const deleteDrink = async (req: Request, res: Response) => {
     res.status(400).send(error);
   }
 };
+
+// Get the total number of drinks
+export const getTotalDrinks = async (req: Request, res: Response) => {
+  try {
+    const totalDrinks = await drinksCollection.countDocuments(); // Counts the number of documents in the drinks collection
+    res.status(200).json({ totalDrinks });
+  } catch (error) {
+    console.error('Error getting total drinks:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
